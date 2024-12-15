@@ -1,0 +1,40 @@
+# .github/workflows/trigger-central-workflow.yml
+name: Trigger Central Workflow in Repo C
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo_a_branch:
+        description: 'Branch in Repository A'
+        required: true
+        default: 'main'
+      repo_b_branch:
+        description: 'Branch in Repository B'
+        required: true
+        default: 'main'
+      repo_b_name:
+        description: 'Name of Repository B (e.g., user/repo-b)'
+        required: true
+        default: 'user/repo-b'
+
+jobs:
+  trigger-central-workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository A
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.repo_a_branch }}
+
+      - name: Trigger Workflow in Repository C
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: user/repo-c  # Replace with your Repository C details
+          event-type: central-workflow-trigger
+          client-payload: >
+            {
+              "repo_a_branch": "${{ github.event.inputs.repo_a_branch }}",
+              "repo_b_branch": "${{ github.event.inputs.repo_b_branch }}",
+              "repo_b_name": "${{ github.event.inputs.repo_b_name }}"
+            }
